@@ -13,4 +13,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Column {
 
     String name() default EntityUtils.EMPTY_STRING;
+
 }

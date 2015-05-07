@@ -1,7 +1,5 @@
 package ro.teamnet.zth.api.annotations;
 
-import ro.teamnet.zth.api.em.EntityUtils;
-
 import java.lang.annotation.Retention;
 import java.lang.annotation.Target;
 
@@ -13,4 +11,5 @@ import static java.lang.annotation.RetentionPolicy.RUNTIME;
 public @interface Id {
 
     String name() default "id";
+
 }
