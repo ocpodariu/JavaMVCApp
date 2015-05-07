@@ -7,7 +7,7 @@ import ro.teamnet.zth.api.annotations.MyRequestMethod;
  * Author: Ovidiu
  * Date:   5/6/2015
  */
-@MyController(urlPath = "/departments")
+@MyController(urlPath = "/locations")
 public class LocationController {
 
     @MyRequestMethod(urlPath = "/all")
