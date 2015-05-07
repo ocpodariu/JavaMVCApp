@@ -5,6 +5,8 @@ import ro.teamnet.zth.api.annotations.MyRequestMethod;
 import ro.teamnet.zth.app.domain.Employee;
 
 import java.sql.Date;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Author: Ovidiu
@@ -14,8 +16,21 @@ import java.sql.Date;
 public class EmployeeController {
 
     @MyRequestMethod(methodType = "GET", urlPath = "/all")
-    public String getAllEmployees() {
-        return "allEmployees";
+    public List<Employee> getAllEmployees() {
+        List<Employee> employees = new ArrayList<>();
+
+        Employee employee1 = new Employee();
+        employee1.setId(14);
+        employee1.setFirstName("Michael");
+
+        Employee employee2 = new Employee();
+        employee2.setId(17);
+        employee2.setFirstName("Phoebe");
+
+        employees.add(employee1);
+        employees.add(employee2);
+
+        return employees;
     }
 
     @MyRequestMethod(methodType = "GET", urlPath = "/one")
