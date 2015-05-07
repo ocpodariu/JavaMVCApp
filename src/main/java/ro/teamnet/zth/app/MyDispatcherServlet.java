@@ -1,5 +1,6 @@
 package ro.teamnet.zth.app;
 
+import org.codehaus.jackson.map.ObjectMapper;
 import ro.teamnet.zth.api.annotations.MyController;
 import ro.teamnet.zth.api.annotations.MyRequestMethod;
 import ro.teamnet.zth.app.controller.DepartmentController;
@@ -27,6 +28,9 @@ import java.util.Map;
 public class MyDispatcherServlet extends HttpServlet {
 
     private Map<String, MethodAttributes> allowedMethods = new HashMap<String, MethodAttributes>();
+
+    // JSON mapper
+    private ObjectMapper mapper = new ObjectMapper();
 
     @Override
     public void init() throws ServletException {
@@ -136,7 +140,11 @@ public class MyDispatcherServlet extends HttpServlet {
 
     private void reply(Object result, HttpServletRequest req, HttpServletResponse resp) throws IOException {
         PrintWriter writer = resp.getWriter();
-        writer.printf(result.toString());
+
+        // Convert result to JSON format, using Jackson library
+        String resultJSON = mapper.writeValueAsString(result);
+
+        writer.printf(resultJSON);
     }
 
     private void sendExceptionError(DispatchException de, HttpServletResponse resp) throws IOException {
