@@ -3,10 +3,7 @@ package ro.teamnet.zth.app;
 import org.codehaus.jackson.map.ObjectMapper;
 import ro.teamnet.zth.api.annotations.MyController;
 import ro.teamnet.zth.api.annotations.MyRequestMethod;
-import ro.teamnet.zth.app.controller.DepartmentController;
-import ro.teamnet.zth.app.controller.EmployeeController;
-import ro.teamnet.zth.app.controller.JobController;
-import ro.teamnet.zth.app.controller.LocationController;
+import ro.teamnet.zth.api.annotations.MyRequestParam;
 import ro.teamnet.zth.fmk.AnnotationScanUtils;
 import ro.teamnet.zth.fmk.MethodAttributes;
 
@@ -16,9 +13,12 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.lang.annotation.Annotation;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
+import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 /**
@@ -53,13 +53,14 @@ public class MyDispatcherServlet extends HttpServlet {
                 Method[] methods = controller.getMethods();
                 for (Method controllerMethod : methods) {
                     if (controllerMethod.isAnnotationPresent(MyRequestMethod.class)) {
-                        MyRequestMethod methodAnnotation = (MyRequestMethod) controllerMethod.getAnnotation(MyRequestMethod.class);
+                        MyRequestMethod methodAnnotation = controllerMethod.getAnnotation(MyRequestMethod.class);
                         String key = controllerUrlPath + methodAnnotation.urlPath();
 
                         MethodAttributes methodAttributes = new MethodAttributes();
                         methodAttributes.setControllerClass(controller.getName());
                         methodAttributes.setMethodName(controllerMethod.getName());
                         methodAttributes.setMethodType(methodAnnotation.methodType());
+                        methodAttributes.setParameters(controllerMethod.getParameterTypes());
 
                         allowedMethods.put(key, methodAttributes);
                     }
@@ -105,7 +106,6 @@ public class MyDispatcherServlet extends HttpServlet {
 
     /**
      * Delegates tasks to the corresponding Application Controller.
-     *
      * @param req
      * @param resp
      * @return
@@ -121,11 +121,22 @@ public class MyDispatcherServlet extends HttpServlet {
             try {
                 // Use reflection to find the right class and method
                 Class clazz = Class.forName(methodAttributes.getControllerClass());
-                Method method = clazz.getMethod(methodAttributes.getMethodName());
+                Method method = clazz.getMethod(methodAttributes.getMethodName(), methodAttributes.getParameters());
+
+                Annotation[][] parameterAnnotations = method.getParameterAnnotations();
 
                 // Create an instance and call the method
                 Object applicationController = clazz.newInstance();
-                Object result = method.invoke(applicationController, null);
+                Object result;
+
+                if (parameterAnnotations.length == 0) {
+                    result = method.invoke(applicationController);
+                } else {
+                    MyRequestParam param = (MyRequestParam) parameterAnnotations[0][0];
+                    List<String> paramValues = new ArrayList<>();
+                    paramValues.add(req.getParameter(param.paramName()));
+                    result = method.invoke(applicationController, paramValues.toArray());
+                }
 
                 return result;
             } catch (ClassNotFoundException | IllegalAccessException | InstantiationException e) {

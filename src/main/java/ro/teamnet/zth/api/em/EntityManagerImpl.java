@@ -161,32 +161,38 @@ public class EntityManagerImpl implements EntityManager {
 
     @Override
     public <T> List<T> findAll(Class<T> entityClass) {
-        try (Connection conn = DBManager.getConnection();
-             Statement stmt = conn.createStatement()){
-
-            List<T> rows = new ArrayList<>();
+        List<T> resultList = null;
+        try (Connection conn = DBManager.getConnection()) {
+            Statement stmt = conn.createStatement();
             QueryBuilder query = new QueryBuilder();
+            resultList = new ArrayList<T>();
+            T result = null;
             String tableName = EntityUtils.getTableName(entityClass);
             List<ColumnInfo> columns = EntityUtils.getColumns(entityClass);
             query.setTableName(tableName).addQueryColumns(columns).setQueryType(QueryType.SELECT);
             String sql = query.createQuery();
             ResultSet rs = stmt.executeQuery(sql);
-
-            T instance = entityClass.newInstance();
             while (rs.next()) {
-                for (ColumnInfo column : columns) {
-                    column.setValue(rs.getObject(column.getDbName()));
-                    Field field = instance.getClass().getDeclaredField(column.getColumnName());
-                    field.setAccessible(true);
-                    field.set(instance, EntityUtils.castFromSqlType(column.getValue(), column.getColumnType()));
+                result = entityClass.newInstance();
+                for (ColumnInfo c : columns) {
+                    Field f = result.getClass().getDeclaredField(c.getColumnName());
+                    f.setAccessible(true);
+                    f.set(result, rs.getObject(c.getDbName()));
                 }
-                rows.add(instance);
+                resultList.add(result);
             }
-            return rows;
-        } catch (SQLException | ClassNotFoundException | NoSuchFieldException | IllegalAccessException | InstantiationException e) {
-            e.printStackTrace();
-            return null;
+        } catch (SQLException e1) {
+            e1.printStackTrace();
+        } catch (NoSuchFieldException e1) {
+            e1.printStackTrace();
+        } catch (InstantiationException e1) {
+            e1.printStackTrace();
+        } catch (IllegalAccessException e1) {
+            e1.printStackTrace();
+        } catch (ClassNotFoundException e1) {
+            e1.printStackTrace();
         }
+        return resultList;
     }
 
 
